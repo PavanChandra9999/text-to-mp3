@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Text to MP3 Converter</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center px-4">
+  <div class="bg-white p-8 rounded-2xl shadow-lg w-full max-w-xl">
+    <h1 class="text-2xl font-bold mb-4 text-center text-blue-700">Text to MP3 (English)</h1>
+
+    <label class="block text-sm font-medium mb-1 text-gray-700">Enter Text:</label>
+    <textarea id="text" rows="5" class="w-full p-3 border rounded-lg mb-4" placeholder="Type your English text here..."></textarea>
+
+    <button id="convertBtn" onclick="convertToSpeech()" class="bg-blue-600 text-white px-4 py-2 rounded-xl hover:bg-blue-700 w-full flex items-center justify-center space-x-2">
+      <span>Convert to MP3</span>
+      <svg id="spinner" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+    </button>
+  </div>
+
+  <script>
+    async function convertToSpeech() {
+      const textArea = document.getElementById("text");
+      const button = document.getElementById("convertBtn");
+      const spinner = document.getElementById("spinner");
+
+      const text = textArea.value;
+      if (!text) return alert("Please enter text");
+
+      // Show spinner and disable button
+      spinner.classList.remove("hidden");
+      button.disabled = true;
+
+      try {
+        const response = await fetch("/tts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) throw new Error("Error generating MP3");
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "speech.mp3";
+        a.click();
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        // Hide spinner and enable button when done
+        spinner.classList.add("hidden");
+        button.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>
